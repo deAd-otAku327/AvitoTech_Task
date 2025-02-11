@@ -1,0 +1,10 @@
+env: dev
+
+server:
+  host: localhost
+  port: 8080
+  response_time: 50ms
+  rps: 1000 
+
+db:
+  url: postgres://postgres:qwerty123@localhost:5432/avitoshop?sslmode=disable
