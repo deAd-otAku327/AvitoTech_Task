@@ -10,23 +10,25 @@ import (
 var (
 	errGenerateToken = errors.New("token generation failed")
 	errParseToken    = errors.New("token parsing failed")
-	errVerifyToken   = errors.New("token verefication failed")
+	errVerifyToken   = errors.New("token verification failed")
 )
 
 type Tokenizer struct {
-	secretKey []byte
+	tokenIssuer string
+	secretKey   []byte
 }
 
-func New(key string) *Tokenizer {
+func New(iss, key string) *Tokenizer {
 	return &Tokenizer{
-		secretKey: []byte(key),
+		tokenIssuer: iss,
+		secretKey:   []byte(key),
 	}
 }
 
 func (t *Tokenizer) GenerateToken(userID int) (*string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
-		"iss": "avito-shop",
+		"iss": t.tokenIssuer,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 		"iat": time.Now().Unix(),
 	})

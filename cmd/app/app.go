@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"merch_shop/internal/config"
-	"merch_shop/internal/tokenizer"
+	"merch_shop/internal/db"
+	"merch_shop/pkg/tokenizer"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
+
+const AppName string = "merch-shop service"
 
 type App struct {
 	cfg    *config.Config
@@ -16,8 +19,11 @@ type App struct {
 }
 
 func New(cfg *config.Config) (*App, error) {
-
-	tokenizer := tokenizer.New(cfg.SecretKey)
+	tokenizer := tokenizer.New(AppName, cfg.SecretKey)
+	storage, err := db.New(cfg.DB)
+	if err != nil {
+		return nil, err
+	}
 
 	router := mux.NewRouter()
 
