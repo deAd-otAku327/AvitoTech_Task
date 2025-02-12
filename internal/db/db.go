@@ -10,7 +10,7 @@ import (
 type DB interface {
 }
 
-type Storage struct {
+type storage struct {
 	db *sql.DB
 }
 
@@ -25,5 +25,5 @@ func New(cfg config.DB) (DB, error) {
 		return nil, err
 	}
 
-	return database, nil
+	return &storage{db: database}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"merch_shop/internal/config"
 	"merch_shop/internal/db"
 	"merch_shop/internal/handlers"
+	"merch_shop/internal/service"
 	"merch_shop/pkg/middleware"
 	"merch_shop/pkg/tokenizer"
 	"net/http"
@@ -28,10 +29,12 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
+	service := service.New(storage)
+
 	router := mux.NewRouter()
 
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
-	authRouter.HandleFunc("", handlers.Auth(storage, tokenizer))
+	authRouter.HandleFunc("", handlers.Auth(service, tokenizer))
 
 	businessRouter := router.PathPrefix("/api").Subrouter()
 	businessRouter.Use(middleware.Auth(tokenizer))
