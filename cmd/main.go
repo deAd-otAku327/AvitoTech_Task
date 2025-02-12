@@ -6,7 +6,7 @@ import (
 	"merch_shop/internal/config"
 )
 
-const configPath = "configs/dev.yaml"
+const configPath = "../configs/dev.yaml"
 
 func main() {
 	cfg, err := config.New(configPath)

@@ -34,12 +34,14 @@ func New(cfg *config.Config) (*App, error) {
 	router := mux.NewRouter()
 
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
-	authRouter.HandleFunc("", handlers.Auth(service, tokenizer))
+	authRouter.HandleFunc("", handlers.Auth(service, tokenizer)).Methods(http.MethodPost)
 
 	businessRouter := router.PathPrefix("/api").Subrouter()
 	businessRouter.Use(middleware.Auth(tokenizer))
 
-	businessRouter.HandleFunc("/info", handlers.GetInfo(storage))
+	businessRouter.HandleFunc("/info", handlers.GetInfo(storage)).Methods(http.MethodGet)
+	businessRouter.HandleFunc("/buy/{id}", handlers.BuyItem()).Methods(http.MethodGet)
+	businessRouter.HandleFunc("/sendCoin", handlers.SendCoin()).Methods(http.MethodPost)
 
 	return &App{
 		cfg: cfg,
