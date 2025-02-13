@@ -6,13 +6,14 @@ import (
 	"merch_shop/pkg/response"
 	"merch_shop/pkg/tokenizer"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
 type key int
 
-const userIDKey key = 0
+const UserIDKey key = 0
 
 var errBadTokenClaims error = errors.New("failed to extract token claims")
 
@@ -27,7 +28,7 @@ func Auth(t *tokenizer.Tokenizer) mux.MiddlewareFunc {
 
 			token, err := t.VerifyToken(tokenCookie.Value)
 			if err != nil {
-				response.MakeErrorResponseJSON(w, http.StatusForbidden, err)
+				response.MakeErrorResponseJSON(w, http.StatusUnauthorized, err)
 				return
 			}
 
@@ -37,7 +38,13 @@ func Auth(t *tokenizer.Tokenizer) mux.MiddlewareFunc {
 				return
 			}
 
-			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), userIDKey, userID)))
+			uid, err := strconv.Atoi(userID)
+			if err != nil {
+				response.MakeErrorResponseJSON(w, http.StatusUnauthorized, errBadTokenClaims)
+				return
+			}
+
+			next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), UserIDKey, uid)))
 		})
 	}
 }

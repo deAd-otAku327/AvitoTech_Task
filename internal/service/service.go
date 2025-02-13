@@ -6,14 +6,16 @@ import (
 	"merch_shop/internal/db"
 	"merch_shop/internal/models"
 	"merch_shop/pkg/cryptor"
+	"merch_shop/pkg/middleware"
 	"merch_shop/pkg/tokenizer"
+	"strconv"
 )
 
 type MerchShopService interface {
 	AuthentificateUser(ctx context.Context, username, password string) (string, error)
 	GetInfo() (*models.Info, error)
-	BuyItem() (*models.Item, error)
-	SendCoin() error
+	BuyItem(ctx context.Context, itemID string) error
+	SendCoin(ctx context.Context, destUsername string, amount int) error
 }
 
 var ErrPasswordMismatch = errors.New("invalid password")
@@ -45,7 +47,7 @@ func (s *merchShopService) AuthentificateUser(ctx context.Context, username, pas
 		return "", ErrPasswordMismatch
 	}
 
-	token, err := s.tokenizer.GenerateToken(*userID)
+	token, err := s.tokenizer.GenerateToken(strconv.Itoa(*userID))
 	if err != nil {
 		return "", err
 	}
@@ -57,10 +59,27 @@ func (s *merchShopService) GetInfo() (*models.Info, error) {
 	return nil, nil
 }
 
-func (s *merchShopService) BuyItem() (*models.Item, error) {
-	return nil, nil
+func (s *merchShopService) BuyItem(ctx context.Context, itemIDStr string) error {
+	userID := ctx.Value(middleware.UserIDKey).(int)
+	itemID, err := strconv.Atoi(itemIDStr)
+	if err != nil {
+		return err
+	}
+
+	err = s.storage.BuyItemByItemID(ctx, userID, itemID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (s *merchShopService) SendCoin() error {
+func (s *merchShopService) SendCoin(ctx context.Context, destUsername string, amount int) error {
+	userID := ctx.Value(middleware.UserIDKey).(int)
+
+	err := s.storage.SendCoinByUsername(ctx, userID, destUsername, amount)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

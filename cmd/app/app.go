@@ -42,7 +42,7 @@ func New(cfg *config.Config) (*App, error) {
 	businessRouter.Use(middleware.Auth(tokenizer))
 
 	businessRouter.HandleFunc("/info", controller.GetInfo()).Methods(http.MethodGet)
-	businessRouter.HandleFunc("/buy/{id}", controller.BuyItem()).Methods(http.MethodGet)
+	businessRouter.HandleFunc("/buy/{item:[0-9]+}", controller.BuyItem()).Methods(http.MethodGet)
 	businessRouter.HandleFunc("/sendCoin", controller.SendCoin()).Methods(http.MethodPost)
 
 	return &App{

@@ -25,7 +25,7 @@ func New(iss, key string) *Tokenizer {
 	}
 }
 
-func (t *Tokenizer) GenerateToken(userID int) (*string, error) {
+func (t *Tokenizer) GenerateToken(userID string) (*string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
 		"iss": t.tokenIssuer,
