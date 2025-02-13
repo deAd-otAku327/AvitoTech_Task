@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"merch_shop/internal/service"
 	"merch_shop/pkg/response"
 	"net/http"
 )
@@ -21,13 +20,9 @@ func (c *Controller) Auth() http.HandlerFunc {
 			return
 		}
 
-		token, err := c.service.AuthentificateUser(r.Context(), request.Username, request.Password)
-		if err == service.ErrPasswordMismatch {
-			response.MakeErrorResponseJSON(w, http.StatusUnauthorized, err)
-			return
-		}
-		if err != nil {
-			response.MakeErrorResponseJSON(w, http.StatusInternalServerError, err)
+		token, servErr := c.service.AuthentificateUser(r.Context(), request.Username, request.Password)
+		if servErr != nil {
+			response.MakeErrorResponseJSON(w, servErr.Code(), servErr)
 			return
 		}
 

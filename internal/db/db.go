@@ -3,7 +3,9 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"merch_shop/internal/config"
+	"merch_shop/internal/models"
 
 	_ "github.com/lib/pq"
 )
@@ -12,6 +14,7 @@ type DB interface {
 	CreateOrGetUser(ctx context.Context, username, encryptedPass string) (*int, string, error)
 	SendCoinByUsername(ctx context.Context, userID int, destUsername string, amount int) error
 	BuyItemByItemID(ctx context.Context, userID, itemID int) error
+	GetUserInfoByUserID(ctx context.Context, userID int) (*int, []byte, *models.CoinTransferHistory, error)
 }
 
 const (
@@ -32,6 +35,12 @@ const (
 	itemsIDColumn    = "id"
 	itemsTypeColumn  = "type"
 	itemsPriceColumn = "price"
+)
+
+var (
+	ErrNoUser         = errors.New("no such user")
+	ErrNoItem         = errors.New("no such item")
+	ErrNotEnoughCoins = errors.New("not enough coins")
 )
 
 type storage struct {

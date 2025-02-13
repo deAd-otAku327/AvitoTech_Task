@@ -1,11 +1,16 @@
 package models
 
 type CoinTransferHistory struct {
-	Recieved []CoinTransfer
-	Sent     []CoinTransfer
+	Recieved []IngoingCoinTransfer  `json:"recieved"`
+	Sent     []OutgoingCoinTransfer `json:"sent"`
 }
 
-type CoinTransfer struct {
-	Username string
-	Amount   int
+type IngoingCoinTransfer struct {
+	Username string `json:"toUser"`
+	Amount   int    `json:"amount"`
+}
+
+type OutgoingCoinTransfer struct {
+	Username string `json:"fromUser"`
+	Amount   int    `json:"amount"`
 }

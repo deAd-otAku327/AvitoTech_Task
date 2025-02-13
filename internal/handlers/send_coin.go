@@ -2,12 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"merch_shop/pkg/response"
 	"net/http"
 )
-
-var errInvalidCoinAmount = errors.New("coin amount is invalid")
 
 func (c *Controller) SendCoin() http.HandlerFunc {
 	type sendCoinRequest struct {
@@ -22,14 +19,9 @@ func (c *Controller) SendCoin() http.HandlerFunc {
 			return
 		}
 
-		if request.Amount <= 0 {
-			response.MakeErrorResponseJSON(w, http.StatusBadRequest, errInvalidCoinAmount)
-			return
-		}
-
-		err = c.service.SendCoin(r.Context(), request.ToUser, request.Amount)
-		if err != nil {
-			response.MakeErrorResponseJSON(w, http.StatusInternalServerError, err)
+		servErr := c.service.SendCoin(r.Context(), request.ToUser, request.Amount)
+		if servErr != nil {
+			response.MakeErrorResponseJSON(w, servErr.Code(), servErr)
 			return
 		}
 

@@ -3,18 +3,16 @@ package handlers
 import (
 	"merch_shop/pkg/response"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
-func (c *Controller) BuyItem() http.HandlerFunc {
+func (c *Controller) GetInfo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		itemID := mux.Vars(r)["item"]
-
-		servErr := c.service.BuyItem(r.Context(), itemID)
+		info, servErr := c.service.GetInfo(r.Context())
 		if servErr != nil {
 			response.MakeErrorResponseJSON(w, servErr.Code(), servErr)
 			return
 		}
+
+		response.MakeResponseJSON(w, http.StatusOK, info)
 	}
 }

@@ -3,14 +3,12 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 )
-
-var ErrNoItem = errors.New("no such item")
 
 func (s *storage) BuyItemByItemID(ctx context.Context, userID, itemID int) error {
 
@@ -62,6 +60,12 @@ func (s *storage) BuyItemByItemID(ctx context.Context, userID, itemID int) error
 		txErr := tx.Rollback()
 		if txErr != nil {
 			log.Printf("tx rollback error: %s", txErr.Error())
+		}
+		if pqErr, ok := err.(*pq.Error); ok {
+			// From http://www.postgresql.org/docs/9.3/static/errcodes-appendix.html
+			if pqErr.Code.Name() == "check_violation" {
+				return ErrNotEnoughCoins
+			}
 		}
 		return err
 	}

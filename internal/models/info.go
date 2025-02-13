@@ -1,7 +1,7 @@
 package models
 
 type Info struct {
-	Balance         int
-	Inventory       []Item
-	TransferHistory CoinTransferHistory
+	Balance         int                 `json:"coins"`
+	Inventory       []Item              `json:"inventory"`
+	TransferHistory CoinTransferHistory `json:"coinHistory"`
 }
