@@ -1,13 +1,38 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"merch_shop/internal/service"
-	"merch_shop/pkg/tokenizer"
+	"merch_shop/pkg/response"
 	"net/http"
 )
 
-func Auth(service service.MerchShopService, t *tokenizer.Tokenizer) http.HandlerFunc {
+func (c *Controller) Auth() http.HandlerFunc {
+	type authRequest struct {
+		Username string `yaml:"username"`
+		Password string `yaml:"password"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
+		request := authRequest{}
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			response.MakeErrorResponseJSON(w, http.StatusBadRequest, err)
+			return
+		}
 
+		token, err := c.service.AuthentificateUser(r.Context(), request.Username, request.Password)
+		if err == service.ErrPasswordMismatch {
+			response.MakeErrorResponseJSON(w, http.StatusUnauthorized, err)
+			return
+		}
+		if err != nil {
+			response.MakeErrorResponseJSON(w, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.Header().Set("Set-Cookie", fmt.Sprintf("token=%s", token))
+
+		response.MakeResponseJSON(w, http.StatusOK, nil)
 	}
 }

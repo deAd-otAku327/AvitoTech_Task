@@ -5,5 +5,6 @@ type User struct {
 	Username string
 	Password string
 
-	Info Info
+	Balance   int
+	Inventory []Item
 }

@@ -1,6 +1,6 @@
 package models
 
-type History struct {
+type CoinTransferHistory struct {
 	Recieved []CoinTransfer
 	Sent     []CoinTransfer
 }

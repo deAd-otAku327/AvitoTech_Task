@@ -29,19 +29,21 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	service := service.New(storage)
+	service := service.New(storage, tokenizer)
+
+	controller := handlers.New(service)
 
 	router := mux.NewRouter()
 
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
-	authRouter.HandleFunc("", handlers.Auth(service, tokenizer)).Methods(http.MethodPost)
+	authRouter.HandleFunc("", controller.Auth()).Methods(http.MethodPost)
 
 	businessRouter := router.PathPrefix("/api").Subrouter()
 	businessRouter.Use(middleware.Auth(tokenizer))
 
-	businessRouter.HandleFunc("/info", handlers.GetInfo(storage)).Methods(http.MethodGet)
-	businessRouter.HandleFunc("/buy/{id}", handlers.BuyItem()).Methods(http.MethodGet)
-	businessRouter.HandleFunc("/sendCoin", handlers.SendCoin()).Methods(http.MethodPost)
+	businessRouter.HandleFunc("/info", controller.GetInfo()).Methods(http.MethodGet)
+	businessRouter.HandleFunc("/buy/{id}", controller.BuyItem()).Methods(http.MethodGet)
+	businessRouter.HandleFunc("/sendCoin", controller.SendCoin()).Methods(http.MethodPost)
 
 	return &App{
 		cfg: cfg,

@@ -20,7 +20,8 @@ type Server struct {
 }
 
 type DB struct {
-	URL string `yaml:"url" env-required:"true"`
+	URL          string `yaml:"url" env-required:"true"`
+	MaxOpenConns int    `yaml:"max_open_conns" env-default:"15"`
 }
 
 func New(path string) (*Config, error) {

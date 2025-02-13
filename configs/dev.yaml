@@ -8,3 +8,4 @@ server:
 
 db:
   url: postgres://postgres:qwerty123@localhost:5432/avitoshop?sslmode=disable
+  max_open_conns: 15

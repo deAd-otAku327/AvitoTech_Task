@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"merch_shop/internal/db"
 	"net/http"
 )
 
-func GetInfo(storage db.DB) http.HandlerFunc {
+func (c *Controller) GetInfo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}
