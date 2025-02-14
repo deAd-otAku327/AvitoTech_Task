@@ -51,35 +51,37 @@ func (s *storage) GetUserInfoByUserID(ctx context.Context, userID int) (*int, []
 	inTransfer := models.IngoingCoinTransfer{}
 	outTransfer := models.OutgoingCoinTransfer{}
 
-	rows, err := s.db.QueryContext(ctx, selectOutgoingTransfersQuery, outgoingTransfersArgs...)
+	rowsOut, err := s.db.QueryContext(ctx, selectOutgoingTransfersQuery, outgoingTransfersArgs...)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	defer rowsOut.Close()
 
-	for rows.Next() {
-		err := rows.Scan(&outTransfer.Username, &outTransfer.Amount)
+	for rowsOut.Next() {
+		err := rowsOut.Scan(&outTransfer.Username, &outTransfer.Amount)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 		history.Sent = append(history.Sent, outTransfer)
 	}
-	if rows.Err() != nil {
+	if rowsOut.Err() != nil {
 		return nil, nil, nil, err
 	}
 
-	rows, err = s.db.QueryContext(ctx, selectIngoingTransfersQuery, ingoingTransfersArgs...)
+	rowsIn, err := s.db.QueryContext(ctx, selectIngoingTransfersQuery, ingoingTransfersArgs...)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+	defer rowsIn.Close()
 
-	for rows.Next() {
-		err := rows.Scan(&inTransfer.Username, &inTransfer.Amount)
+	for rowsIn.Next() {
+		err := rowsIn.Scan(&inTransfer.Username, &inTransfer.Amount)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 		history.Recieved = append(history.Recieved, inTransfer)
 	}
-	if rows.Err() != nil {
+	if rowsIn.Err() != nil {
 		return nil, nil, nil, err
 	}
 

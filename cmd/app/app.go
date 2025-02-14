@@ -34,6 +34,8 @@ func New(cfg *config.Config) (*App, error) {
 	controller := handlers.New(service)
 
 	router := mux.NewRouter()
+	router.Use(middleware.RpsLimit(cfg.RPS))
+	router.Use(middleware.ResponseTimeLimit(cfg.ResponseTime))
 
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
 	authRouter.HandleFunc("", controller.Auth()).Methods(http.MethodPost)
