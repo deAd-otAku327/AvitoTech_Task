@@ -23,10 +23,16 @@ type MerchShopService interface {
 	SendCoin(ctx context.Context, destUsername string, amount int) xerrors.Xerror
 }
 
+const (
+	minCoinsForTransfer = 1
+	maxPasswordLenth    = 15
+)
+
 var (
 	errSmthWentWrong     = errors.New("something went wrong")
 	errPasswordMismatch  = errors.New("invalid password")
-	errInvalidCoinAmount = errors.New("coin amount is invalid")
+	errInvalidCoinAmount = errors.New("coin amount is invalid: min " + strconv.Itoa(minCoinsForTransfer))
+	errPasswordTooLong   = errors.New("password is too long: max " + strconv.Itoa(maxPasswordLenth))
 )
 
 type merchShopService struct {
@@ -44,6 +50,9 @@ func New(storage db.DB, log *slog.Logger, t *tokenizer.Tokenizer) MerchShopServi
 }
 
 func (s *merchShopService) AuthentificateUser(ctx context.Context, username, password string) (string, xerrors.Xerror) {
+	if len(password) > maxPasswordLenth {
+		return "", xerrors.New(errPasswordTooLong, http.StatusBadRequest)
+	}
 	userID, dbPassword, err := s.storage.CreateOrGetUser(ctx, username, password)
 	if err != nil {
 		s.logger.Error("create or get user: " + err.Error())
@@ -126,7 +135,7 @@ func (s *merchShopService) BuyItem(ctx context.Context, itemIDStr string) xerror
 }
 
 func (s *merchShopService) SendCoin(ctx context.Context, destUsername string, amount int) xerrors.Xerror {
-	if amount <= 0 {
+	if amount < minCoinsForTransfer {
 		return xerrors.New(errInvalidCoinAmount, http.StatusBadRequest)
 	}
 	userID := ctx.Value(middleware.UserIDKey).(int)
