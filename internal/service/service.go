@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"merch_shop/internal/db"
 	"merch_shop/internal/models"
 	"merch_shop/pkg/cryptor"
@@ -23,18 +24,21 @@ type MerchShopService interface {
 }
 
 var (
+	errSmthWentWrong     = errors.New("something went wrong")
 	errPasswordMismatch  = errors.New("invalid password")
 	errInvalidCoinAmount = errors.New("coin amount is invalid")
 )
 
 type merchShopService struct {
 	tokenizer *tokenizer.Tokenizer
+	logger    *slog.Logger
 	storage   db.DB
 }
 
-func New(storage db.DB, t *tokenizer.Tokenizer) MerchShopService {
+func New(storage db.DB, log *slog.Logger, t *tokenizer.Tokenizer) MerchShopService {
 	return &merchShopService{
 		storage:   storage,
+		logger:    log,
 		tokenizer: t,
 	}
 }
@@ -42,7 +46,8 @@ func New(storage db.DB, t *tokenizer.Tokenizer) MerchShopService {
 func (s *merchShopService) AuthentificateUser(ctx context.Context, username, password string) (string, xerrors.Xerror) {
 	userID, dbPassword, err := s.storage.CreateOrGetUser(ctx, username, password)
 	if err != nil {
-		return "", xerrors.New(err, http.StatusInternalServerError)
+		s.logger.Error("create or get user: " + err.Error())
+		return "", xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
 	}
 
 	if err := cryptor.CompareHashAndPassword(dbPassword, password); err != nil {
@@ -51,7 +56,8 @@ func (s *merchShopService) AuthentificateUser(ctx context.Context, username, pas
 
 	token, err := s.tokenizer.GenerateToken(strconv.Itoa(*userID))
 	if err != nil {
-		return "", xerrors.New(err, http.StatusInternalServerError)
+		s.logger.Error("generate token: " + err.Error())
+		return "", xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
 	}
 
 	return *token, nil
@@ -62,10 +68,11 @@ func (s *merchShopService) GetInfo(ctx context.Context) (*models.Info, xerrors.X
 
 	balance, inventory, history, err := s.storage.GetUserInfoByUserID(ctx, userID)
 	if err != nil {
-		return nil, xerrors.New(err, http.StatusInternalServerError)
+		s.logger.Error("get user info: " + err.Error())
+		return nil, xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
 	}
-	proccessedInventory := make([]models.Item, 0)
 
+	proccessedInventory := make([]models.Item, 0)
 	if string(inventory) != "{}" {
 
 		cleanInventory := strings.Builder{}
@@ -103,7 +110,8 @@ func (s *merchShopService) BuyItem(ctx context.Context, itemIDStr string) xerror
 	userID := ctx.Value(middleware.UserIDKey).(int)
 	itemID, err := strconv.Atoi(itemIDStr)
 	if err != nil {
-		return xerrors.New(err, http.StatusInternalServerError)
+		s.logger.Error("itemID string to int: " + err.Error())
+		return xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
 	}
 
 	err = s.storage.BuyItemByItemID(ctx, userID, itemID)
@@ -111,7 +119,8 @@ func (s *merchShopService) BuyItem(ctx context.Context, itemIDStr string) xerror
 		if err == db.ErrNoItem || err == db.ErrNotEnoughCoins {
 			return xerrors.New(err, http.StatusBadRequest)
 		}
-		return xerrors.New(err, http.StatusInternalServerError)
+		s.logger.Error("buy item: " + err.Error())
+		return xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
 	}
 	return nil
 }
@@ -127,6 +136,7 @@ func (s *merchShopService) SendCoin(ctx context.Context, destUsername string, am
 		if err == db.ErrNoUser || err == db.ErrNotEnoughCoins {
 			return xerrors.New(err, http.StatusBadRequest)
 		}
+		s.logger.Error("send coin: " + err.Error())
 		return xerrors.New(err, http.StatusInternalServerError)
 	}
 

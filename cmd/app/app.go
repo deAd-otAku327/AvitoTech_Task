@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"merch_shop/internal/config"
 	"merch_shop/internal/db"
 	"merch_shop/internal/handlers"
@@ -22,7 +22,7 @@ type App struct {
 	server *http.Server
 }
 
-func New(cfg *config.Config) (*App, error) {
+func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	tokenizer := tokenizer.New(AppName, cfg.SecretKey)
 
 	storage, err := db.New(cfg.DB)
@@ -30,13 +30,14 @@ func New(cfg *config.Config) (*App, error) {
 		return nil, err
 	}
 
-	service := service.New(storage, tokenizer)
+	service := service.New(storage, logger, tokenizer)
 
 	controller := handlers.New(service)
 
 	router := mux.NewRouter()
 	router.Use(middleware.RpsLimit(cfg.RPS))
 	router.Use(middleware.ResponseTimeLimit(cfg.ResponseTime))
+	router.Use(middleware.Logging(logger))
 
 	authRouter := router.PathPrefix("/api/auth").Subrouter()
 	authRouter.HandleFunc("", controller.Auth()).Methods(http.MethodPost)
@@ -58,7 +59,7 @@ func New(cfg *config.Config) (*App, error) {
 }
 
 func (app *App) Run() error {
-	log.Printf("server starting on %s", app.server.Addr)
+	slog.Info("server starting on", slog.String("address", app.server.Addr))
 	return app.server.ListenAndServe()
 }
 

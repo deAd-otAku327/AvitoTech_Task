@@ -3,8 +3,10 @@ package main
 import (
 	"errors"
 	"log"
+	"log/slog"
 	"merch_shop/cmd/app"
 	"merch_shop/internal/config"
+	"merch_shop/internal/logger"
 	"net/http"
 	"os"
 	"os/signal"
@@ -17,7 +19,7 @@ func main() {
 	cfg, err := config.New(configPath)
 	reportOnError(err)
 
-	app, err := app.New(cfg)
+	app, err := app.New(cfg, logger.New(os.Stdout))
 	reportOnError(err)
 
 	go func() {
@@ -32,14 +34,12 @@ func main() {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-	select {
-	case <-ch:
-		log.Println("starting server shutdown")
-		if err := app.Shutdown(); err != nil {
-			log.Fatalf("server shutdown failed: %v", err)
-		}
-		log.Println("server shutdown completed")
+	<-ch
+	slog.Info("starting server shutdown")
+	if err := app.Shutdown(); err != nil {
+		log.Fatalf("server shutdown failed: %v", err)
 	}
+	slog.Info("server shutdown completed")
 }
 
 func reportOnError(err error) {
