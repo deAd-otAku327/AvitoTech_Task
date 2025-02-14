@@ -40,12 +40,7 @@ func New(storage db.DB, t *tokenizer.Tokenizer) MerchShopService {
 }
 
 func (s *merchShopService) AuthentificateUser(ctx context.Context, username, password string) (string, xerrors.Xerror) {
-	encryptedPass, err := cryptor.EncryptKeyword(password)
-	if err != nil {
-		return "", xerrors.New(err, http.StatusInternalServerError)
-	}
-
-	userID, dbPassword, err := s.storage.CreateOrGetUser(ctx, username, encryptedPass)
+	userID, dbPassword, err := s.storage.CreateOrGetUser(ctx, username, password)
 	if err != nil {
 		return "", xerrors.New(err, http.StatusInternalServerError)
 	}
