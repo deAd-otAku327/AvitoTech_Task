@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"merch_shop/internal/config"
@@ -59,4 +60,8 @@ func New(cfg *config.Config) (*App, error) {
 func (app *App) Run() error {
 	log.Printf("server starting on %s", app.server.Addr)
 	return app.server.ListenAndServe()
+}
+
+func (app *App) Shutdown() error {
+	return app.server.Shutdown(context.Background())
 }
