@@ -38,7 +38,8 @@ var (
 
 //go:generate go run github.com/vektra/mockery/v2@v2.52.2 --name=DB
 type DB interface {
-	CreateOrGetUser(ctx context.Context, username, encryptedPass string) (*int, string, error)
+	CreateUser(ctx context.Context, username, password string) (*int, error)
+	GetUser(ctx context.Context, username string) (*int, string, error)
 	SendCoinByUsername(ctx context.Context, userID int, destUsername string, amount int) error
 	BuyItemByItemID(ctx context.Context, userID, itemID int) error
 	GetUserInfoByUserID(ctx context.Context, userID int) (*int, []byte, *models.CoinTransferHistory, error)

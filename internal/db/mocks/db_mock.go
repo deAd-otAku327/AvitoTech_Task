@@ -33,36 +33,66 @@ func (_m *DB) BuyItemByItemID(ctx context.Context, userID int, itemID int) error
 	return r0
 }
 
-// CreateOrGetUser provides a mock function with given fields: ctx, username, encryptedPass
-func (_m *DB) CreateOrGetUser(ctx context.Context, username string, encryptedPass string) (*int, string, error) {
-	ret := _m.Called(ctx, username, encryptedPass)
+// CreateUser provides a mock function with given fields: ctx, username, password
+func (_m *DB) CreateUser(ctx context.Context, username string, password string) (*int, error) {
+	ret := _m.Called(ctx, username, password)
 
 	if len(ret) == 0 {
-		panic("no return value specified for CreateOrGetUser")
+		panic("no return value specified for CreateUser")
 	}
 
 	var r0 *int
-	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*int, string, error)); ok {
-		return rf(ctx, username, encryptedPass)
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*int, error)); ok {
+		return rf(ctx, username, password)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) *int); ok {
-		r0 = rf(ctx, username, encryptedPass)
+		r0 = rf(ctx, username, password)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*int)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) string); ok {
-		r1 = rf(ctx, username, encryptedPass)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, username, password)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUser provides a mock function with given fields: ctx, username
+func (_m *DB) GetUser(ctx context.Context, username string) (*int, string, error) {
+	ret := _m.Called(ctx, username)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUser")
+	}
+
+	var r0 *int
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*int, string, error)); ok {
+		return rf(ctx, username)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *int); ok {
+		r0 = rf(ctx, username)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*int)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) string); ok {
+		r1 = rf(ctx, username)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
 
-	if rf, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
-		r2 = rf(ctx, username, encryptedPass)
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, username)
 	} else {
 		r2 = ret.Error(2)
 	}

@@ -16,9 +16,9 @@ import (
 )
 
 func TestAuth(t *testing.T) {
-	db := dbmock.NewDB(t)
+	datadase := dbmock.NewDB(t)
 	tokenizer := tokenizermock.NewTokenizer(t)
-	service := New(db, slog.Default(), tokenizer)
+	service := New(datadase, slog.Default(), tokenizer)
 
 	type res struct {
 		token string
@@ -49,20 +49,10 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
-	t.Run("db error", func(t *testing.T) {
+	t.Run("get user db error", func(t *testing.T) {
 		username := strings.Repeat("1", maxUsernameLenth-1)
 		password := strings.Repeat("1", maxPasswordLenth-1)
-		db.On("CreateOrGetUser", context.Background(), username, password).Return(nil, "", errors.New("some error"))
-
-		token, err := service.AuthentificateUser(context.Background(), username, password)
-		require.Equal(t, token, "")
-		require.Equal(t, err, xerrors.New(errSmthWentWrong, http.StatusInternalServerError))
-	})
-
-	t.Run("cryptor error", func(t *testing.T) {
-		username := strings.Repeat("1", maxUsernameLenth-1)
-		password := strings.Repeat("1", maxPasswordLenth-1)
-		db.On("CreateOrGetUser", context.Background(), username, password).Return(nil, "", errors.New("some error"))
+		datadase.On("GetUser", context.Background(), username).Return(nil, "", errors.New("some error"))
 
 		token, err := service.AuthentificateUser(context.Background(), username, password)
 		require.Equal(t, token, "")

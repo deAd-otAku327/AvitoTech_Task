@@ -65,14 +65,30 @@ func (s *merchShopService) AuthentificateUser(ctx context.Context, username, pas
 		return "", xerrors.New(errUsernameInvalid, http.StatusBadRequest)
 	}
 
-	userID, dbPassword, err := s.storage.CreateOrGetUser(ctx, username, password)
+	userID, dbPassword, err := s.storage.GetUser(ctx, username)
 	if err != nil {
-		s.logger.Error("create or get user: " + err.Error())
-		return "", xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
-	}
+		if err == db.ErrNoUser {
 
-	if err := cryptor.CompareHashAndPassword(dbPassword, password); err != nil {
-		return "", xerrors.New(errPasswordMismatch, http.StatusUnauthorized)
+			encryptedPass, err := cryptor.EncryptKeyword(password)
+			if err != nil {
+				s.logger.Error("encrypt password: " + err.Error())
+				return "", xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
+			}
+
+			userID, err = s.storage.CreateUser(ctx, username, encryptedPass)
+			if err != nil {
+				s.logger.Error("create user: " + err.Error())
+				return "", xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
+			}
+		} else {
+			s.logger.Error("get user: " + err.Error())
+			return "", xerrors.New(errSmthWentWrong, http.StatusInternalServerError)
+		}
+
+	} else {
+		if err := cryptor.CompareHashAndPassword(dbPassword, password); err != nil {
+			return "", xerrors.New(errPasswordMismatch, http.StatusUnauthorized)
+		}
 	}
 
 	token, err := s.tokenizer.GenerateToken(strconv.Itoa(*userID))
