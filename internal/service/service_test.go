@@ -30,14 +30,14 @@ func TestAuth(t *testing.T) {
 			password    string
 			expectedErr xerrors.Xerror
 		}{
-			{name: "password lenth < min", username: strings.Repeat("1", minUsernameLenth),
-				password: strings.Repeat("1", minPasswordLenth-1), expectedErr: xerrors.New(errPasswordInvalid, http.StatusBadRequest)},
-			{name: "password lenth > max", username: strings.Repeat("1", minUsernameLenth),
-				password: strings.Repeat("1", maxPasswordLenth+1), expectedErr: xerrors.New(errPasswordInvalid, http.StatusBadRequest)},
-			{name: "username lenth < min", username: strings.Repeat("1", minUsernameLenth-1),
-				password: strings.Repeat("1", minPasswordLenth), expectedErr: xerrors.New(errUsernameInvalid, http.StatusBadRequest)},
-			{name: "username lenth > max", username: strings.Repeat("1", maxUsernameLenth+1),
-				password: strings.Repeat("1", minPasswordLenth), expectedErr: xerrors.New(errUsernameInvalid, http.StatusBadRequest)},
+			{name: "password Length < min", username: strings.Repeat("1", minUsernameLength),
+				password: strings.Repeat("1", minPasswordLength-1), expectedErr: xerrors.New(errPasswordInvalid, http.StatusBadRequest)},
+			{name: "password Length > max", username: strings.Repeat("1", minUsernameLength),
+				password: strings.Repeat("1", maxPasswordLength+1), expectedErr: xerrors.New(errPasswordInvalid, http.StatusBadRequest)},
+			{name: "username Length < min", username: strings.Repeat("1", minUsernameLength-1),
+				password: strings.Repeat("1", minPasswordLength), expectedErr: xerrors.New(errUsernameInvalid, http.StatusBadRequest)},
+			{name: "username Length > max", username: strings.Repeat("1", maxUsernameLength+1),
+				password: strings.Repeat("1", minPasswordLength), expectedErr: xerrors.New(errUsernameInvalid, http.StatusBadRequest)},
 		}
 
 		for _, tc := range testCases {
@@ -46,8 +46,8 @@ func TestAuth(t *testing.T) {
 		}
 	})
 
-	username := strings.Repeat("1", minUsernameLenth)
-	password := strings.Repeat("1", minPasswordLenth)
+	username := strings.Repeat("1", minUsernameLength)
+	password := strings.Repeat("1", minPasswordLength)
 	userID := 1
 	expToken := "test"
 
@@ -187,7 +187,9 @@ func TestGetInfo(t *testing.T) {
 			TransferHistory: models.CoinTransferHistory{},
 		}
 
-		database.On("GetUserInfoByUserID", mock.Anything, mock.Anything).Return(&balance, []byte(emptyJSONB), &models.CoinTransferHistory{}, nil)
+		database.On("GetUserInfoByUserID", mock.Anything, mock.Anything).Return(
+			&balance, []byte(emptyJSONB), &models.CoinTransferHistory{}, nil,
+		)
 
 		info, err := service.GetInfo(ctxWithUserID)
 		require.NoError(t, err)

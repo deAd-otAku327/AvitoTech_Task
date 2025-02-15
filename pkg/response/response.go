@@ -18,7 +18,7 @@ func MakeResponseJSON(w http.ResponseWriter, code int, data any) {
 	w.Header().Set(contentTypeHeader, contentType)
 	w.WriteHeader(code)
 	if data != nil {
-		json.NewEncoder(w).Encode(data)
+		json.NewEncoder(w).Encode(data) //nolint:errcheck
 	}
 }
 

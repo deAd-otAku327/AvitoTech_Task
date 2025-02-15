@@ -20,11 +20,11 @@ import (
 const (
 	minCoinsForTransfer = 1
 
-	minPasswordLenth = 6
-	maxPasswordLenth = 15
+	minPasswordLength = 6
+	maxPasswordLength = 15
 
-	minUsernameLenth = 1
-	maxUsernameLenth = 10
+	minUsernameLength = 1
+	maxUsernameLength = 10
 
 	emptyJSONB = "{}"
 )
@@ -34,8 +34,8 @@ var (
 	errPasswordMismatch = errors.New("incorrect password")
 
 	errCoinAmountInvalid = fmt.Errorf("coin amount is invalid: min %d", minCoinsForTransfer)
-	errPasswordInvalid   = fmt.Errorf("password is invalid: lenth min %d max %d", minPasswordLenth, maxPasswordLenth)
-	errUsernameInvalid   = fmt.Errorf("username is invalid: lenth min %d max %d", minUsernameLenth, maxUsernameLenth)
+	errPasswordInvalid   = fmt.Errorf("password is invalid: length min %d max %d", minPasswordLength, maxPasswordLength)
+	errUsernameInvalid   = fmt.Errorf("username is invalid: length min %d max %d", minUsernameLength, maxUsernameLength)
 )
 
 var jsonbFormatRunesToCut = map[rune]struct{}{
@@ -69,10 +69,10 @@ func New(storage db.DB, log *slog.Logger, cr cryptor.Cryptor, t tokenizer.Tokeni
 }
 
 func (s *merchShopService) AuthentificateUser(ctx context.Context, username, password string) (string, xerrors.Xerror) {
-	if len(password) > maxPasswordLenth || len(password) < minPasswordLenth {
+	if len(password) > maxPasswordLength || len(password) < minPasswordLength {
 		return "", xerrors.New(errPasswordInvalid, http.StatusBadRequest)
 	}
-	if len(username) > maxUsernameLenth || len(username) < minUsernameLenth {
+	if len(username) > maxUsernameLength || len(username) < minUsernameLength {
 		return "", xerrors.New(errUsernameInvalid, http.StatusBadRequest)
 	}
 

@@ -28,7 +28,8 @@ func (s *storage) GetUserInfoByUserID(ctx context.Context, userID int) (*int, []
 
 	selectIngoingTransfersQuery, ingoingTransfersArgs, err := sq.Select(usersNameColumn, coinTransfersAmountColumn).
 		From(coinTransfersTable).
-		LeftJoin(fmt.Sprintf("%s ON %s.%s = %s.%s", usersTable, coinTransfersTable, coinTransfersSourceColumn, usersTable, userIDColumn)).
+		LeftJoin(fmt.Sprintf("%s ON %s.%s = %s.%s",
+			usersTable, coinTransfersTable, coinTransfersSourceColumn, usersTable, userIDColumn)).
 		Where(sq.Eq{coinTransfersDestColumn: userID}).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
