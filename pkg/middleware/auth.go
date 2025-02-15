@@ -13,7 +13,7 @@ type key int
 
 const UserIDKey key = 0
 
-func Auth(t *tokenizer.Tokenizer) mux.MiddlewareFunc {
+func Auth(t tokenizer.Tokenizer) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tokenCookie, err := r.Cookie("token")

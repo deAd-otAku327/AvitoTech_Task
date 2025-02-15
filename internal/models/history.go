@@ -6,11 +6,11 @@ type CoinTransferHistory struct {
 }
 
 type IngoingCoinTransfer struct {
-	Username string `json:"toUser"`
+	Username string `json:"fromUser"`
 	Amount   int    `json:"amount"`
 }
 
 type OutgoingCoinTransfer struct {
-	Username string `json:"fromUser"`
+	Username string `json:"toUser"`
 	Amount   int    `json:"amount"`
 }

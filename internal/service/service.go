@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"merch_shop/internal/db"
 	"merch_shop/internal/models"
@@ -25,23 +26,30 @@ type MerchShopService interface {
 
 const (
 	minCoinsForTransfer = 1
-	maxPasswordLenth    = 15
+
+	minPasswordLenth = 6
+	maxPasswordLenth = 15
+
+	minUsernameLenth = 1
+	maxUsernameLenth = 10
 )
 
 var (
-	errSmthWentWrong     = errors.New("something went wrong")
-	errPasswordMismatch  = errors.New("invalid password")
-	errInvalidCoinAmount = errors.New("coin amount is invalid: min " + strconv.Itoa(minCoinsForTransfer))
-	errPasswordTooLong   = errors.New("password is too long: max " + strconv.Itoa(maxPasswordLenth))
+	errSmthWentWrong    = errors.New("something went wrong")
+	errPasswordMismatch = errors.New("incorrect password")
+
+	errCoinAmountInvalid = fmt.Errorf("coin amount is invalid: min %d", minCoinsForTransfer)
+	errPasswordInvalid   = fmt.Errorf("password is invalid: lenth min %d max %d", minPasswordLenth, maxPasswordLenth)
+	errUsernameInvalid   = fmt.Errorf("username is invalid: lenth min %d max %d", minUsernameLenth, maxUsernameLenth)
 )
 
 type merchShopService struct {
-	tokenizer *tokenizer.Tokenizer
-	logger    *slog.Logger
 	storage   db.DB
+	logger    *slog.Logger
+	tokenizer tokenizer.Tokenizer
 }
 
-func New(storage db.DB, log *slog.Logger, t *tokenizer.Tokenizer) MerchShopService {
+func New(storage db.DB, log *slog.Logger, t tokenizer.Tokenizer) MerchShopService {
 	return &merchShopService{
 		storage:   storage,
 		logger:    log,
@@ -50,9 +58,13 @@ func New(storage db.DB, log *slog.Logger, t *tokenizer.Tokenizer) MerchShopServi
 }
 
 func (s *merchShopService) AuthentificateUser(ctx context.Context, username, password string) (string, xerrors.Xerror) {
-	if len(password) > maxPasswordLenth {
-		return "", xerrors.New(errPasswordTooLong, http.StatusBadRequest)
+	if len(password) > maxPasswordLenth || len(password) < minPasswordLenth {
+		return "", xerrors.New(errPasswordInvalid, http.StatusBadRequest)
 	}
+	if len(username) > maxUsernameLenth || len(username) < minUsernameLenth {
+		return "", xerrors.New(errUsernameInvalid, http.StatusBadRequest)
+	}
+
 	userID, dbPassword, err := s.storage.CreateOrGetUser(ctx, username, password)
 	if err != nil {
 		s.logger.Error("create or get user: " + err.Error())
@@ -136,7 +148,7 @@ func (s *merchShopService) BuyItem(ctx context.Context, itemIDStr string) xerror
 
 func (s *merchShopService) SendCoin(ctx context.Context, destUsername string, amount int) xerrors.Xerror {
 	if amount < minCoinsForTransfer {
-		return xerrors.New(errInvalidCoinAmount, http.StatusBadRequest)
+		return xerrors.New(errCoinAmountInvalid, http.StatusBadRequest)
 	}
 	userID := ctx.Value(middleware.UserIDKey).(int)
 
