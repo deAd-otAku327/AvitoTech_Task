@@ -8,6 +8,7 @@ import (
 	"merch_shop/internal/db"
 	"merch_shop/internal/handlers"
 	"merch_shop/internal/service"
+	"merch_shop/pkg/cryptor"
 	"merch_shop/pkg/middleware"
 	"merch_shop/pkg/tokenizer"
 	"net/http"
@@ -24,13 +25,14 @@ type App struct {
 
 func New(cfg *config.Config, logger *slog.Logger) (*App, error) {
 	tokenizer := tokenizer.New(AppName, cfg.SecretKey)
+	cryptor := cryptor.New()
 
 	storage, err := db.New(cfg.DB)
 	if err != nil {
 		return nil, err
 	}
 
-	service := service.New(storage, logger, tokenizer)
+	service := service.New(storage, logger, cryptor, tokenizer)
 
 	controller := handlers.New(service)
 
