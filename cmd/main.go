@@ -13,7 +13,7 @@ import (
 	"syscall"
 )
 
-const configPath = "../configs/dev.yaml"
+const configPath = "configs/local.yaml"
 
 func main() {
 	cfg, err := config.New(configPath)
