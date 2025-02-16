@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"log"
 	"merch_shop/internal/models"
 	"testing"
@@ -62,7 +63,8 @@ func TestGetUserInfoByUserID(t *testing.T) {
 				},
 			},
 			dbBehavior: func(arg int) {
-				selectUserDataRows := sqlmock.NewRows([]string{usersBalanceColumn, usersInventoryColumn}).AddRow(expBalance, []byte("test"))
+				selectUserDataRows := sqlmock.NewRows([]string{usersBalanceColumn, usersInventoryColumn}).
+					AddRow(expBalance, []byte("test"))
 				mock.ExpectQuery(selectUserDataQueryRegexp).WithArgs(arg).WillReturnRows(selectUserDataRows)
 
 				selectOutgoingTransfersRows := sqlmock.NewRows([]string{usersBalanceColumn, coinTransfersAmountColumn}).AddRow(
@@ -76,6 +78,55 @@ func TestGetUserInfoByUserID(t *testing.T) {
 				mock.ExpectQuery(selectTransfersQueryRegexp).WithArgs(arg).WillReturnRows(selectIngoingTransfersRows)
 			},
 			expectErr: false,
+		},
+		{
+			name: "select user data scan error",
+			expected: expectedRes{
+				balance:   nil,
+				inventory: nil,
+				history:   nil,
+			},
+			dbBehavior: func(arg int) {
+				mock.ExpectQuery(selectUserDataQueryRegexp).WithArgs(arg).WillReturnError(errors.New("some error"))
+			},
+			expectErr: true,
+		},
+		{
+			name: "select outgoing transfers query error",
+			expected: expectedRes{
+				balance:   nil,
+				inventory: nil,
+				history:   nil,
+			},
+			dbBehavior: func(arg int) {
+				selectUserDataRows := sqlmock.NewRows([]string{usersBalanceColumn, usersInventoryColumn}).
+					AddRow(expBalance, []byte("test"))
+				mock.ExpectQuery(selectUserDataQueryRegexp).WithArgs(arg).WillReturnRows(selectUserDataRows)
+
+				mock.ExpectQuery(selectTransfersQueryRegexp).WithArgs(arg).WillReturnError(errors.New("some error"))
+			},
+			expectErr: true,
+		},
+		{
+			name: "select ingoing transfers query error",
+			expected: expectedRes{
+				balance:   nil,
+				inventory: nil,
+				history:   nil,
+			},
+			dbBehavior: func(arg int) {
+				selectUserDataRows := sqlmock.NewRows([]string{usersBalanceColumn, usersInventoryColumn}).
+					AddRow(expBalance, []byte("test"))
+				mock.ExpectQuery(selectUserDataQueryRegexp).WithArgs(arg).WillReturnRows(selectUserDataRows)
+
+				selectOutgoingTransfersRows := sqlmock.NewRows([]string{usersBalanceColumn, coinTransfersAmountColumn}).AddRow(
+					"testOut", 100,
+				)
+				mock.ExpectQuery(selectTransfersQueryRegexp).WithArgs(arg).WillReturnRows(selectOutgoingTransfersRows)
+
+				mock.ExpectQuery(selectTransfersQueryRegexp).WithArgs(arg).WillReturnError(errors.New("some error"))
+			},
+			expectErr: true,
 		},
 	}
 
