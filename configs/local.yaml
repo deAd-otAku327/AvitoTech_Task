@@ -1,0 +1,9 @@
+server:
+  host: 0.0.0.0
+  port: 8080
+  response_time: 50ms
+  rps: 1000 
+
+db:
+  url: postgres://postgres:qwerty123@db:5432/avitoshop?sslmode=disable
+  max_open_conns: 15

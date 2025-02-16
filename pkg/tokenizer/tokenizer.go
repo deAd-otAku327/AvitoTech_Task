@@ -10,23 +10,31 @@ import (
 var (
 	errGenerateToken = errors.New("token generation failed")
 	errParseToken    = errors.New("token parsing failed")
-	errVerifyToken   = errors.New("token verefication failed")
+	errVerifyToken   = errors.New("token verification failed")
 )
 
-type Tokenizer struct {
-	secretKey []byte
+//go:generate go run github.com/vektra/mockery/v2@v2.52.2 --name=Tokenizer
+type Tokenizer interface {
+	GenerateToken(userID string) (*string, error)
+	VerifyToken(tokenString string) (*jwt.Token, error)
 }
 
-func New(key string) *Tokenizer {
-	return &Tokenizer{
-		secretKey: []byte(key),
+type tokenizer struct {
+	tokenIssuer string
+	secretKey   []byte
+}
+
+func New(iss, key string) Tokenizer {
+	return &tokenizer{
+		tokenIssuer: iss,
+		secretKey:   []byte(key),
 	}
 }
 
-func (t *Tokenizer) GenerateToken(userID int) (*string, error) {
+func (t *tokenizer) GenerateToken(userID string) (*string, error) {
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
-		"iss": "avito-shop",
+		"iss": t.tokenIssuer,
 		"exp": time.Now().Add(time.Hour * 24).Unix(),
 		"iat": time.Now().Unix(),
 	})
@@ -39,7 +47,7 @@ func (t *Tokenizer) GenerateToken(userID int) (*string, error) {
 	return &token, nil
 }
 
-func (t *Tokenizer) VerifyToken(tokenString string) (*jwt.Token, error) {
+func (t *tokenizer) VerifyToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return t.secretKey, nil
 	})

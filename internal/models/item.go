@@ -1,6 +1,6 @@
 package models
 
 type Item struct {
-	Type     string
-	Quantity string
+	Type     string `json:"type"`
+	Quantity string `json:"quantity"`
 }
